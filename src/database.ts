@@ -1,4 +1,4 @@
-import { TUser, TProduct, TPurchase } from "./types"
+import { TUser, CATEGORY, TProduct, TPurchase } from "./types"
 
 export const users: TUser[] = [
     {
@@ -18,13 +18,13 @@ export const products: TProduct[] = [
         id: "1",
         name: "produto1",
         price: 100,
-        category: "utensilho"
+        category: CATEGORY.ACCESSORIES
     },
     {
         id: "2",
         name: "produto2",
         price: 150,
-        category: "eletro"
+        category: CATEGORY.GAMES_AND_CONSOLES
     },
 ]
 
@@ -42,3 +42,60 @@ export const purchases: TPurchase[] = [
         totalPrice: products[1].price * 3,
     }
 ]
+
+export function createUser(id: string, email: string, password: string): void {
+
+    users.push({
+        id,
+        email,
+        password
+    })
+
+    console.log("Cadastro realizado com sucesso")
+}
+
+export function getAllUsers(): void {
+    console.log(users)
+}
+
+export function createProduct(id: string, name: string, price: number, category: CATEGORY): void {
+
+    products.push({
+        id,
+        name,
+        price,
+        category
+    })
+
+    console.log("Produto criado com sucesso")
+}
+
+export function getAllProducts(): void {
+    console.log(products)
+}
+
+export function getProductByID(idToSeach: string): void {
+
+    console.log(products.find(product => product.id === idToSeach))
+}
+
+export function queryProductsByName(q: string): void {
+    const query = products.find(product => product.name.toLowerCase().includes(q.toLowerCase()))
+
+    console.log(query)
+}
+
+export function createPurchase(userId: string, productId: string, quantity: number, totalPrice: number): void {
+    purchases.push({
+        userId,
+        productId,
+        quantity,
+        totalPrice
+    })
+    console.log("Compra realizada com sucesso")
+}
+
+export function getAllPurchasesFromUserId(userIdToSearch: string): void {
+    console.log(purchases.find(purchase => purchase.userId === userIdToSearch))
+}
+
