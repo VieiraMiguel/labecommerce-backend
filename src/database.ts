@@ -33,13 +33,13 @@ export const purchases: TPurchase[] = [
         userId: "2",
         productId: "1",
         quantity: 2,
-        totalPrice: products[0].price * 2,
+        totalPrice: 200,
     },
     {
         userId: "1",
         productId: "2",
         quantity: 3,
-        totalPrice: products[1].price * 3,
+        totalPrice: 450,
     }
 ]
 
