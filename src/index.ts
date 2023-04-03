@@ -4,18 +4,6 @@ import { CATEGORY, TProduct, TPurchase, TUser } from "./types";
 import express, { Request, Response } from "express";
 import cors from "cors"
 
-// console.log(users)
-// console.log(products)
-// console.log(purchases)
-
-// createUser("Miguel", "miguel@gmail.com", "miguel123")
-// getAllUsers()
-// createProduct("p004", "Monitor HD", 800, CATEGORY.ELECTRONICS)
-// getAllProducts()
-// getProductByID("p004")
-// queryProductsByName("produto2")
-// getAllPurchasesFromUserId("1")
-
 const app = express()
 app.use(express.json());
 app.use(cors());
