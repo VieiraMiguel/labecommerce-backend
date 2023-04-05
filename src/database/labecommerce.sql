@@ -108,6 +108,38 @@ WHERE id = "p002";
 
 SELECT * FROM users ORDER BY email ASC;
 
-SELECT * FROM products ORDER BY price ASC LIMIT 20  OFFSET 0;
+SELECT * FROM products ORDER BY price ASC LIMIT 20 OFFSET 0;
 
-SELECT * FROM products WHERE price BETWEEN 100 AND 230 ORDER BY price ASC;
+SELECT *
+FROM products
+WHERE price BETWEEN 100 AND 230
+ORDER BY price ASC;
+
+CREATE TABLE
+    purchases (
+        id TEXT PRIMARY KEY UNIQUE NOT NULL,
+        total_price REAL NOT NULL,
+        paid INTEGER NOT NULL,
+        delivered_at TEXT,
+        buyer_id TEXT NOT NULL,
+        FOREIGN KEY (buyer_id) REFERENCES users(id)
+    );
+
+INSERT INTO purchases
+VALUES ("p001", 530, 1, NULL, "u002"), ("p002", 650, 0, NULL, "u002"), ("p003", 150, 0, NULL, "u001"), ("p004", 500, 0, NULL, "u001");
+
+SELECT * FROM purchases;
+
+DROP TABLE purchases;
+
+UPDATE purchases SET delivered_at = DATETIME("now");
+
+SELECT
+    purchases.id AS purchaseId,
+    purchases.total_price,
+    purchases.paid,
+    purchases.delivered_at,
+    users.id AS userId,
+    users.email
+FROM purchases
+    JOIN users ON purchases.buyer_id = users.id AND users.id = "u001"
