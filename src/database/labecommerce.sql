@@ -126,7 +126,7 @@ CREATE TABLE
     );
 
 INSERT INTO purchases
-VALUES ("p001", 530, 1, NULL, "u002"), ("p002", 650, 0, NULL, "u002"), ("p003", 150, 0, NULL, "u001"), ("p004", 500, 0, NULL, "u001");
+VALUES ("c001", 530, 1, NULL, "u002"), ("c002", 650, 0, NULL, "u002"), ("c003", 150, 0, NULL, "u001"), ("c004", 500, 0, NULL, "u001");
 
 SELECT * FROM purchases;
 
@@ -142,4 +142,35 @@ SELECT
     users.id AS userId,
     users.email
 FROM purchases
-    JOIN users ON purchases.buyer_id = users.id AND users.id = "u001"
+    JOIN users ON purchases.buyer_id = users.id AND users.id = "u001";
+
+CREATE TABLE
+    purchases_products (
+        purchase_id TEXT NOT NULL,
+        product_id TEXT NOT NULL,
+        quantity INTEGER NOT NULL,
+        FOREIGN KEY (purchase_id) REFERENCES purchases(id),
+        FOREIGN KEY (product_id) REFERENCES products(id)
+    );
+
+INSERT INTO
+    purchases_products(
+        purchase_id,
+        product_id,
+        quantity
+    )
+VALUES ("c001", "p002", 3), ("c001", "p003", 2), ("c002", "p004", 5);
+
+SELECT
+    purchases_products.purchase_id,
+    purchases_products.product_id,
+    products.name,
+    products.price,
+    purchases_products.quantity,
+    purchases.total_price,
+    purchases.paid,
+    purchases.delivered_at,
+    purchases.buyer_id
+FROM purchases_products
+    INNER JOIN purchases ON purchases_products.purchase_id = purchases.id
+    INNER JOIN products ON purchases_products.product_id = products.id
