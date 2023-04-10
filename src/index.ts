@@ -3,6 +3,7 @@ import { CATEGORY, TProduct, TPurchase, TUser } from "./types";
 
 import express, { Request, Response } from "express";
 import cors from "cors"
+import { db } from "./database/knex";
 
 const app = express()
 app.use(express.json());
@@ -17,32 +18,50 @@ app.get('/ping', (req: Request, res: Response) => {
 })
 
 
-app.get("/users", (req: Request, res: Response) => {
+app.get("/users", async (req: Request, res: Response) => {
 
     try {
 
-        res.status(200).send(users)
+        const result = await db.raw(`SELECT * FROM users`)
+
+        res.status(200).send(result)
 
     } catch (error) {
-
         console.log(error)
 
-        res.status(500)
+        if (req.statusCode === 200) {
+            res.status(500)
+        }
+
+        if (error instanceof Error) {
+            res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
+        }
     }
 })
 
 
-app.get("/products", (req: Request, res: Response) => {
+app.get("/products", async (req: Request, res: Response) => {
 
     try {
 
-        res.status(200).send(products)
+        const result = await db.raw(`SELECT * FROM products`)
+
+        res.status(200).send(result)
 
     } catch (error) {
-
         console.log(error)
 
-        res.status(500)
+        if (req.statusCode === 200) {
+            res.status(500)
+        }
+
+        if (error instanceof Error) {
+            res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
+        }
     }
 })
 
@@ -61,11 +80,13 @@ app.get("/purchases", (req: Request, res: Response) => {
 })
 
 
-app.get("/product/search", (req: Request, res: Response) => {
+app.get("/product/search", async (req: Request, res: Response) => {
 
     try {
 
         const q = req.query.q as string
+
+        const products = await db.raw(`SELECT * FROM products`)
 
         if (q.length < 1) {
 
@@ -75,7 +96,7 @@ app.get("/product/search", (req: Request, res: Response) => {
 
         } else {
             const result = products.filter(
-                (product) => {
+                (product: { name: string; }) => {
                     return product.name.toLowerCase().includes(q.toLowerCase())
                 })
 
@@ -83,25 +104,31 @@ app.get("/product/search", (req: Request, res: Response) => {
         }
 
     } catch (error) {
-
         console.log(error)
 
-        if (res.statusCode === 200) {
+        if (req.statusCode === 200) {
             res.status(500)
         }
+
         if (error instanceof Error) {
             res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
         }
     }
 })
 
-app.post("/users", (req: Request, res: Response) => {
+app.post("/users", async (req: Request, res: Response) => {
 
     try {
 
         const id = req.body.id
+        //const name = req.body.name
         const email = req.body.email
         const password = req.body.password
+        // const createdAt = await db.raw(`DATETIME("now")`)
+
+        const users = await db.raw(`SELECT * FROM users`)
 
         if (typeof id !== "string") {
 
@@ -109,13 +136,13 @@ app.post("/users", (req: Request, res: Response) => {
             throw new Error("'id' inválido. Deve ser do tipo 'string'")
         }
 
-        else if (users.find((user => user.id === id))) {
+        else if (users.find(((user: { id: string; }) => user.id === id))) {
 
             res.status(400)
             throw new Error("'id' já existe em outra conta")
         }
 
-        else if (users.find((user => user.email === email))) {
+        else if (users.find(((user: { email: string; }) => user.email === email))) {
 
             res.status(400)
             throw new Error("'email' já existe em outra conta")
@@ -135,32 +162,29 @@ app.post("/users", (req: Request, res: Response) => {
 
         else {
 
-            const newUser: TUser = {
-                id,
-                email,
-                password
-            }
-
-            users.push(newUser)
+            await db.raw(`INSERT INTO users(id, email, password)
+            VALUES ("${id}", "${email}", "${password}");`)
 
             res.status(201).send("Usuário cadastrado")
 
         }
 
     } catch (error) {
-
         console.log(error)
 
-        if (res.statusCode === 200) {
+        if (req.statusCode === 200) {
             res.status(500)
         }
+
         if (error instanceof Error) {
             res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
         }
     }
 })
 
-app.post("/products", (req: Request, res: Response) => {
+app.post("/products", async (req: Request, res: Response) => {
 
     try {
         const id = req.body.id
@@ -168,13 +192,15 @@ app.post("/products", (req: Request, res: Response) => {
         const price = req.body.price
         const category = req.body.category
 
+        const products = await db.raw(`SELECT * FROM products`)
+
         if (typeof id !== "string") {
 
             res.status(400)
             throw new Error("'id' inválido. Deve ser do tipo 'string'")
         }
 
-        else if (products.find((product => product.id === id))) {
+        else if (products.find(((product: { id: string; }) => product.id === id))) {
 
             res.status(400)
             throw new Error("'id' já utilizado em outro produto")
@@ -204,32 +230,38 @@ app.post("/products", (req: Request, res: Response) => {
 
         else {
 
-            const newProduct: TProduct = {
-                id,
-                name,
-                price,
-                category
-            }
+            // const newProduct: TProduct = {
+            //     id,
+            //     name,
+            //     price,
+            //     category
+            // }
 
-            products.push(newProduct)
+            //products.push(newProduct)
+
+            await db.raw(`INSERT INTO products(id, name, price, category)
+            VALUES ("${id}", "${name}", "${price}", "${category}");`)
+
             res.status(200).send("Produto cadastrado")
         }
 
 
     } catch (error) {
-
         console.log(error)
 
-        if (res.statusCode === 200) {
+        if (req.statusCode === 200) {
             res.status(500)
         }
+
         if (error instanceof Error) {
             res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
         }
     }
 })
 
-app.post("/purchases", (req: Request, res: Response) => {
+app.post("/purchases", async (req: Request, res: Response) => {
 
     try {
         const userId = req.body.userId
@@ -237,13 +269,17 @@ app.post("/purchases", (req: Request, res: Response) => {
         const quantity = req.body.quantity
         const totalPrice = req.body.totalPrice
 
+        const users = await db.raw(`SELECT * FROM users`)
+
+        const products = await db.raw(`SELECT * FROM products`)
+
         if (typeof userId !== "string") {
 
             res.status(400)
             throw new Error("'id' inválido. Deve ser do tipo 'string'")
         }
 
-        else if (!users.find((user => user.id === userId))) {
+        else if (!users.find(((user: { id: string; }) => user.id === userId))) {
 
             res.status(400)
             throw new Error("'userId' deve corresponder a um 'id' de usuários cadastrados")
@@ -255,7 +291,7 @@ app.post("/purchases", (req: Request, res: Response) => {
             throw new Error("'productId' inválido. Deve ser do tipo 'string'")
         }
 
-        else if (!products.find((product => product.id === productId))) {
+        else if (!products.find(((product: { id: string; }) => product.id === productId))) {
 
             res.status(400)
             throw new Error("'productId' deve corresponder a um 'id' de produtos cadastrados")
@@ -275,38 +311,45 @@ app.post("/purchases", (req: Request, res: Response) => {
 
         else {
 
-            const newPurchase: TPurchase = {
-                userId,
-                productId,
-                quantity,
-                totalPrice
-            }
+            // const newPurchase: TPurchase = {
+            //     userId,
+            //     productId,
+            //     quantity,
+            //     totalPrice
+            // }
 
-            purchases.push(newPurchase)
+            // purchases.push(newPurchase)
+
+            await db.raw(`INSERT INTO purchases(userId, productId, quantity, totalPrice)
+            VALUES ("${userId}", "${productId}", "${quantity}", "${totalPrice}");`)
 
             res.status(200).send("Compra realizada")
         }
 
     } catch (error) {
-
         console.log(error)
 
-        if (res.statusCode === 200) {
+        if (req.statusCode === 200) {
             res.status(500)
         }
+
         if (error instanceof Error) {
             res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
         }
     }
 })
 
-app.get("/products/:id", (req: Request, res: Response) => {
+app.get("/products/:id", async (req: Request, res: Response) => {
 
     try {
 
         const id = req.params.id
 
-        const result = products.find((product) => product.id === id)
+        const products = await db.raw(`SELECT * FROM products`)
+
+        const result = products.find((product: { id: string; }) => product.id === id)
 
         if (result) {
 
@@ -319,24 +362,29 @@ app.get("/products/:id", (req: Request, res: Response) => {
         }
 
     } catch (error) {
-
         console.log(error)
 
-        if (res.statusCode === 200) {
+        if (req.statusCode === 200) {
             res.status(500)
         }
+
         if (error instanceof Error) {
             res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
         }
     }
 })
 
-app.get("/users/:id/purchases", (req: Request, res: Response) => {
+app.get("/users/:id/purchases", async (req: Request, res: Response) => {
 
     try {
 
         const id = req.params.id
-        const result = purchases.find((purchase) => purchase.userId === id)
+
+        const purchases = await db.raw(`SELECT * FROM purchases`)
+
+        const result = purchases.filter((purchase: { buyer_id: string; }) => purchase.buyer_id === id)
 
         if (result) {
 
@@ -349,14 +397,16 @@ app.get("/users/:id/purchases", (req: Request, res: Response) => {
         }
 
     } catch (error) {
-
         console.log(error)
 
-        if (res.statusCode === 200) {
+        if (req.statusCode === 200) {
             res.status(500)
         }
+
         if (error instanceof Error) {
             res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
         }
     }
 })
@@ -385,14 +435,16 @@ app.delete("/users/:id", (req: Request, res: Response) => {
         }
 
     } catch (error) {
-
         console.log(error)
 
-        if (res.statusCode === 200) {
+        if (req.statusCode === 200) {
             res.status(500)
         }
+
         if (error instanceof Error) {
             res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
         }
     }
 })
@@ -421,14 +473,16 @@ app.delete("/products/:id", (req: Request, res: Response) => {
         }
 
     } catch (error) {
-
         console.log(error)
 
-        if (res.statusCode === 200) {
+        if (req.statusCode === 200) {
             res.status(500)
         }
+
         if (error instanceof Error) {
             res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
         }
     }
 })
@@ -474,14 +528,16 @@ app.put("/users/:id", (req: Request, res: Response) => {
         }
 
     } catch (error) {
-
         console.log(error)
 
-        if (res.statusCode === 200) {
+        if (req.statusCode === 200) {
             res.status(500)
         }
+
         if (error instanceof Error) {
             res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
         }
     }
 })
@@ -545,14 +601,16 @@ app.put("/products/:id", (req: Request, res: Response) => {
         }
 
     } catch (error) {
-
         console.log(error)
 
-        if (res.statusCode === 200) {
+        if (req.statusCode === 200) {
             res.status(500)
         }
+
         if (error instanceof Error) {
             res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
         }
     }
 })

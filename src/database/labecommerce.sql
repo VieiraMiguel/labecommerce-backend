@@ -3,8 +3,10 @@
 CREATE TABLE
     users (
         id TEXT PRIMARY KEY UNIQUE NOT NULL,
+        name TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL
+        password TEXT NOT NULL,
+        createdAt
     );
 
 INSERT INTO users
@@ -173,4 +175,4 @@ SELECT
     purchases.buyer_id
 FROM purchases_products
     INNER JOIN purchases ON purchases_products.purchase_id = purchases.id
-    INNER JOIN products ON purchases_products.product_id = products.id
+    INNER JOIN products ON purchases_products.product_id = products.id;
