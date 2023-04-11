@@ -22,7 +22,7 @@ app.get("/users", async (req: Request, res: Response) => {
 
     try {
 
-        const result = await db.raw(`SELECT * FROM users`)
+        const result = await db("users")
 
         res.status(200).send(result)
 
@@ -46,7 +46,7 @@ app.get("/products", async (req: Request, res: Response) => {
 
     try {
 
-        const result = await db.raw(`SELECT * FROM products`)
+        const result = await db("products")
 
         res.status(200).send(result)
 
@@ -86,7 +86,7 @@ app.get("/product/search", async (req: Request, res: Response) => {
 
         const q = req.query.q as string
 
-        const products = await db.raw(`SELECT * FROM products`)
+        const products = await db("products")
 
         if (q.length < 1) {
 
@@ -599,6 +599,54 @@ app.put("/products/:id", (req: Request, res: Response) => {
 
             throw new Error("Produto não encontrado")
         }
+
+    } catch (error) {
+        console.log(error)
+
+        if (req.statusCode === 200) {
+            res.status(500)
+        }
+
+        if (error instanceof Error) {
+            res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
+        }
+    }
+})
+
+app.get("/purchases/:id", async (req: Request, res: Response) => {
+
+    try {
+
+        const id = req.params.id
+
+        const purchases = await db
+            .select(
+                "purchases.id",
+                "total_price",
+                "delivered_at",
+                "paid",
+                "buyer_id",
+                "users.email"
+            )
+            .from("purchases")
+            .where({ "purchases.id": id })
+            .innerJoin("users", "purchases.buyer_id", "=", "users.id")
+
+        const productList = await db
+            .select(
+                "products.id",
+                "products.name",
+                "products.price",
+                "products.category",
+                "purchases_products.quantity"
+            )
+            .from("products")
+            .where({ "purchases_products.purchase_id": id })
+            .innerJoin("purchases_products", "products.id", "=", "purchases_products.product_id")
+
+        res.status(200).send({ ...purchases[0], productsList: productList })
 
     } catch (error) {
         console.log(error)
