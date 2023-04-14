@@ -124,6 +124,16 @@ CREATE TABLE
         FOREIGN KEY (product_id) REFERENCES products(id)
     );
 
+INSERT INTO
+    purchases_products
+VALUES ("c001", "p002", 1), ("c001", "p003", 2), ("c002", "p001", 1), ("c002", "p005", 3), ("c003", "p005", 1), ("c004", "p004", 1);
+
+DROP TABLE users;
+
+DROP TABLE products;
+
+DROP TABLE purchases;
+
 DROP TABLE purchases_products;
 
 SELECT * FROM purchases;
@@ -131,9 +141,6 @@ SELECT * FROM purchases;
 SELECT * FROM purchases_products;
 
 SELECT * FROM products;
-
-INSERT INTO purchases_products
-VALUES ("c001", "p002", 1), ("c001", "p003", 2), ("c002", "p001", 1), ("c002", "p005", 3), ("c003", "p005", 1), ("c004", "p004", 1);
 
 -- SELECT
 
