@@ -277,7 +277,6 @@ app.post("/purchases", async (req: Request, res: Response) => {
         const products = req.body.products
         const totalPrice = req.body.totalPrice
 
-
         if (typeof id !== "string") {
             res.status(400)
             throw new Error("'id' inválido. Deve ser do tipo 'string'")
@@ -330,12 +329,9 @@ app.post("/purchases", async (req: Request, res: Response) => {
             purchaseTotalPrice += productWithPrice.price * product.quantity
         }
 
-        const newPurchase = {
-            id,
-            buyer_id: buyer,
-            total_price: purchaseTotalPrice,
-        }
-        await db("purchases").insert(newPurchase)
+        await db.raw(`
+        INSERT INTO purchases(id, buyer_id, total_price, created_at)
+        VALUES ("${id}", "${buyer}", "${purchaseTotalPrice}", DATETIME("now", "localtime"));`)
 
         for (let product of products) {
             const [purchaseProductAlreadyExists] =
